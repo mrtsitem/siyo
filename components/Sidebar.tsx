@@ -1,16 +1,30 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getSettings, providerName, ProviderId } from "@/lib/settings";
 
 const NAV = [
-  { href: "/", label: "Sohbet", icon: "💬", desc: "Yeni konuşma" },
+  { href: "/", label: "Sohbet", icon: "💬", desc: "Battle & konuşma" },
   { href: "/leaderboard", label: "Liderlik Tablosu", icon: "🏆", desc: "Model sıralaması" },
   { href: "/history", label: "Geçmiş", icon: "🕘", desc: "Ara & incele" },
+  { href: "/models", label: "Modeller", icon: "🧠", desc: "8 model kataloğu" },
+  { href: "/settings", label: "Ayarlar", icon: "⚙️", desc: "Motor & API anahtarı" },
 ];
 
 export default function Sidebar() {
   const path = usePathname();
+  const [prov, setProv] = useState<ProviderId>("mock");
+
+  useEffect(() => {
+    try {
+      setProv(getSettings().provider);
+    } catch {
+      /* yoksay */
+    }
+  }, [path]);
+
   return (
     <aside className="sidebar">
       <Link href="/" className="brand">
@@ -33,10 +47,10 @@ export default function Sidebar() {
         ))}
       </nav>
       <div className="side-foot">
-        <div className="demo-pill">
-          <span className="dot" />
-          Demo Modu — API anahtarsız çalışır
-        </div>
+        <Link href="/settings" className="demo-pill" style={{ textDecoration: "none" }}>
+          <span className="dot" style={prov !== "mock" ? { background: "var(--green)", boxShadow: "0 0 8px var(--green)" } : undefined} />
+          {prov === "mock" ? "Demo Modu — ayarlardan değiştir" : providerName(prov)}
+        </Link>
       </div>
     </aside>
   );

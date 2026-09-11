@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────
 // Model kataloğu — arena.ai'deki gibi model listesi.
-// Gerçek API bağlandığında bu ID'ler sağlayıcıya eşlenecek.
+// `real` alanı: gerçek sağlayıcı seçildiğinde hangi
+// modelin çağrılacağını belirler (otomatik eşleşme).
 // ─────────────────────────────────────────────
 
 export type ModelStyle =
@@ -11,6 +12,12 @@ export type ModelStyle =
   | "coder"
   | "friendly";
 
+export interface RealMapping {
+  groq: string;
+  openai: string;
+  gemini: string;
+}
+
 export interface AIModel {
   id: string;
   name: string;
@@ -19,9 +26,7 @@ export interface AIModel {
   baseRating: number;
   color: string;
   style: ModelStyle;
-  // Gerçek API'ye geçildiğinde kullanılacak sağlayıcı bilgisi
-  provider?: "openai" | "anthropic" | "groq" | "gemini" | "mock";
-  providerModel?: string;
+  real: RealMapping;
 }
 
 export const MODELS: AIModel[] = [
@@ -33,7 +38,11 @@ export const MODELS: AIModel[] = [
     baseRating: 1287,
     color: "#7c6cf0",
     style: "analytical",
-    provider: "mock",
+    real: {
+      groq: "llama-3.3-70b-versatile",
+      openai: "gpt-4o",
+      gemini: "gemini-2.0-flash",
+    },
   },
   {
     id: "nova-pro",
@@ -43,7 +52,11 @@ export const MODELS: AIModel[] = [
     baseRating: 1262,
     color: "#f06595",
     style: "creative",
-    provider: "mock",
+    real: {
+      groq: "llama-3.3-70b-versatile",
+      openai: "gpt-4o",
+      gemini: "gemini-2.0-flash",
+    },
   },
   {
     id: "orion-max",
@@ -53,7 +66,11 @@ export const MODELS: AIModel[] = [
     baseRating: 1241,
     color: "#339af0",
     style: "detailed",
-    provider: "mock",
+    real: {
+      groq: "llama-3.1-70b-versatile",
+      openai: "gpt-4o",
+      gemini: "gemini-1.5-pro",
+    },
   },
   {
     id: "coderx-70b",
@@ -63,7 +80,11 @@ export const MODELS: AIModel[] = [
     baseRating: 1215,
     color: "#51cf66",
     style: "coder",
-    provider: "mock",
+    real: {
+      groq: "llama-3.3-70b-versatile",
+      openai: "gpt-4o",
+      gemini: "gemini-2.0-flash",
+    },
   },
   {
     id: "zephyr-turbo",
@@ -73,7 +94,11 @@ export const MODELS: AIModel[] = [
     baseRating: 1198,
     color: "#ffa94d",
     style: "concise",
-    provider: "mock",
+    real: {
+      groq: "llama-3.1-8b-instant",
+      openai: "gpt-4o-mini",
+      gemini: "gemini-2.0-flash-lite",
+    },
   },
   {
     id: "lyra-chat",
@@ -83,7 +108,11 @@ export const MODELS: AIModel[] = [
     baseRating: 1154,
     color: "#63e6be",
     style: "friendly",
-    provider: "mock",
+    real: {
+      groq: "llama-3.1-8b-instant",
+      openai: "gpt-4o-mini",
+      gemini: "gemini-1.5-flash",
+    },
   },
   {
     id: "titan-lite",
@@ -93,7 +122,11 @@ export const MODELS: AIModel[] = [
     baseRating: 1109,
     color: "#e599f7",
     style: "concise",
-    provider: "mock",
+    real: {
+      groq: "gemma2-9b-it",
+      openai: "gpt-4o-mini",
+      gemini: "gemini-1.5-flash",
+    },
   },
   {
     id: "pulsar-1",
@@ -103,9 +136,20 @@ export const MODELS: AIModel[] = [
     baseRating: 1076,
     color: "#ffd43b",
     style: "analytical",
-    provider: "mock",
+    real: {
+      groq: "llama-3.3-70b-versatile",
+      openai: "gpt-4.1-mini",
+      gemini: "gemini-2.0-flash",
+    },
   },
 ];
+
+/** Bir model adı çalışmazsa denenecek yedekler */
+export const FALLBACKS: Record<"groq" | "openai" | "gemini", string[]> = {
+  groq: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
+  openai: ["gpt-4o-mini", "gpt-3.5-turbo"],
+  gemini: ["gemini-2.0-flash", "gemini-1.5-flash"],
+};
 
 export function getModel(id: string): AIModel {
   return MODELS.find((m) => m.id === id) ?? MODELS[0];

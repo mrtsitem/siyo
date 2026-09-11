@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
-import { getModel } from "@/lib/models";
+import { getModel, FALLBACKS } from "@/lib/models";
 import { generateMockResponse } from "@/lib/mockAI";
+import {
+  callOpenAICompatible,
+  callGemini,
+  HistoryTurn,
+} from "@/lib/providers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +16,6 @@ function sleep(ms: number) {
 
 function splitChunks(text: string, size: number): string[] {
   const out: string[] = [];
-  // Kelime sınırından böl ki streaming doğal görünsün
   const words = text.split(/(\s+)/);
   let buf = "";
   for (const w of words) {
@@ -25,37 +29,46 @@ function splitChunks(text: string, size: number): string[] {
   return out;
 }
 
-// ─────────────────────────────────────────────
-// Sağlayıcı katmanı.
-// ŞU AN: API anahtarı yok → demo motoru (mock) kullanılır.
-// SONRA: Groq / OpenAI / Gemini anahtarı eklenince buraya bağlanacak.
-// Ortam değişkeni ör: GROQ_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY
-// ─────────────────────────────────────────────
-async function generateWithProvider(
+type Provider = "mock" | "groq" | "openai" | "gemini";
+
+async function generateFull(
   prompt: string,
-  modelId: string
+  modelId: string,
+  history: HistoryTurn[],
+  provider: Provider,
+  apiKey: string
 ): Promise<string> {
   const model = getModel(modelId);
 
-  // TODO(Adım 2): gerçek sağlayıcı entegrasyonu.
-  // Örnek iskelet (Groq — OpenAI uyumlu, ücretsiz katmanı var):
-  //
-  // if (process.env.GROQ_API_KEY && model.provider === "groq") {
-  //   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-  //     method: "POST",
-  //     headers: {
-  //       "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       model: model.providerModel, // örn: "llama-3.3-70b-versatile"
-  //       messages: [{ role: "user", content: prompt }],
-  //     }),
-  //   });
-  //   const data = await res.json();
-  //   return data.choices[0].message.content;
-  // }
-
+  if (provider === "groq") {
+    if (!apiKey) throw new Error("Groq anahtarı girilmedi. Ayarlar sayfasından ekleyin.");
+    return callOpenAICompatible(
+      "https://api.groq.com/openai/v1",
+      apiKey,
+      model,
+      model.real.groq,
+      FALLBACKS.groq,
+      history,
+      prompt
+    );
+  }
+  if (provider === "openai") {
+    if (!apiKey) throw new Error("OpenAI anahtarı girilmedi. Ayarlar sayfasından ekleyin.");
+    return callOpenAICompatible(
+      "https://api.openai.com/v1",
+      apiKey,
+      model,
+      model.real.openai,
+      FALLBACKS.openai,
+      history,
+      prompt
+    );
+  }
+  if (provider === "gemini") {
+    if (!apiKey) throw new Error("Gemini anahtarı girilmedi. Ayarlar sayfasından ekleyin.");
+    return callGemini(apiKey, model, model.real.gemini, FALLBACKS.gemini, history, prompt);
+  }
+  // Varsayılan: demo motoru
   return generateMockResponse(prompt, model);
 }
 
@@ -64,12 +77,25 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const prompt = String(body.prompt ?? "").slice(0, 4000);
     const modelId = String(body.modelId ?? "atlas-ultra");
+    const history = (Array.isArray(body.history) ? body.history : []) as HistoryTurn[];
+    const provider = (String(body.provider ?? "mock") as Provider) || "mock";
+    const apiKey = String(body.apiKey ?? "");
 
     if (!prompt.trim()) {
       return new Response("Boş mesaj gönderilemez.", { status: 400 });
     }
+    if (!["mock", "groq", "openai", "gemini"].includes(provider)) {
+      return new Response("Geçersiz motor seçimi.", { status: 400 });
+    }
 
-    const full = await generateWithProvider(prompt, modelId);
+    let full: string;
+    try {
+      full = await generateFull(prompt, modelId, history, provider, apiKey);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Üretim hatası.";
+      return new Response(msg, { status: 502 });
+    }
+
     const encoder = new TextEncoder();
     const chunks = splitChunks(full, 28);
 
@@ -77,7 +103,7 @@ export async function POST(req: NextRequest) {
       async start(controller) {
         for (const c of chunks) {
           controller.enqueue(encoder.encode(c));
-          await sleep(25 + Math.random() * 45);
+          await sleep(20 + Math.random() * 40);
         }
         controller.close();
       },
@@ -88,6 +114,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-cache",
         "X-Model-Id": modelId,
+        "X-Provider": provider,
       },
     });
   } catch (e) {

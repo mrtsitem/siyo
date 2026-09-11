@@ -1,20 +1,18 @@
-# ⚔️ Arena — AI Battle & Leaderboard
+# ⚔️ Arena — AI Battle & Leaderboard (v2)
 
 arena.ai mantığıyla çalışan yapay zekâ karşılaştırma platformu:
-**Battle Mode + Direkt Sohbet + Elo Liderlik Tablosu + Geçmiş/Arama.**
-
-> Şu an **Demo Modu** ile çalışır — API anahtarı gerekmez.
-> Gerçek AI bağlantısı (Groq / OpenAI / Gemini) `app/api/chat/route.ts` içindeki
-> `generateWithProvider()` fonksiyonuna eklenecek şekilde hazırdır.
+**Battle + Side-by-Side + Direkt Sohbet + Kategorili Elo Tablosu + Geçmiş + Gerçek AI Motorları.**
 
 ## Özellikler
 
-- ⚔️ **Battle Mode:** 2 gizli model aynı soruya cevap verir, kullanıcı oylar
-- 💬 **Direkt Sohbet:** 8 modelden birini seç, birebir konuş
-- 🏆 **Liderlik Tablosu:** Elo puanı (K=32), galibiyet/mağlubiyet, kazanma %
-- 🕘 **Geçmiş:** Tüm battle'lar + soru/model araması
-- 📎 **Dosya ekleme:** txt/md/kod dosyası içeriğini soruya dahil etme
-- 🌍 **TR/EN algılama:** Sorunun dilinde cevap
+- ⚔️ **Battle Mode:** 2 gizli model yarışır, oy verilir, kimlikler açılır (multi-turn)
+- 🆚 **Side-by-Side:** 2 modeli ismiyle seçip karşılaştırma
+- 💬 **Direkt Sohbet:** 8 modelden biriyle birebir konuşma (kopyala + yeniden üret)
+- 🏆 **Liderlik Tablosu:** Genel / Kodlama / Yaratıcı / Sohbet kategorilerinde Elo (K=32)
+- 🕘 **Geçmiş:** Oy dağılımı, kategori rozetleri, arama, JSON dışa aktarma
+- 🧠 **Modeller:** Katalog, puanlar, tek tıkla sohbet
+- 🔌 **Gerçek AI:** Ayarlar'dan kendi anahtarını gir — Groq (ücretsiz) / OpenAI / Gemini
+- 📎 Dosya ekleme, 🌍 TR/EN algılama, 📱 mobil uyum
 
 ## Yerelde çalıştırma
 
@@ -26,27 +24,18 @@ npm run dev
 
 ## Vercel'den yayınlama
 
-1. Bu klasörü GitHub'a yükle (aşağıya bak)
-2. [vercel.com](https://vercel.com) → **Add New Project** → repoyu seç → **Deploy**
-3. Başka ayar gerekmez (Next.js otomatik tanınır)
+1. [vercel.com](https://vercel.com) → **Add New Project** → bu repoyu seç → **Deploy**
+2. Her `git push` otomatik yayınlanır
 
-## GitHub'a yükleme
+## Gerçek AI bağlama
 
-```bash
-git init
-git add .
-git commit -m "Arena v1: battle + leaderboard + history"
-git branch -M main
-git remote add origin https://github.com/KULLANICI/arena.git
-git push -u origin main
-```
+Kod hazır — anahtar gerekmez, Ayarlar sayfasından kullanıcı kendi anahtarını girer:
 
-## Gerçek AI bağlama (2. adım)
+1. Siteyi aç → **Ayarlar** → motor seç (örn. Groq)
+2. [console.groq.com/keys](https://console.groq.com/keys) adresinden ücretsiz anahtar al
+3. Anahtarı yapıştır → **Kaydet** → **Bağlantıyı test et**
 
-Ücretsiz seçenekler: **Groq** veya **Google Gemini** (ücretsiz katman).
-Anahtar alınınca Vercel → Project → Settings → Environment Variables bölümüne
-örn. `GROQ_API_KEY` eklenir, `lib/models.ts` içindeki modellere
-`provider` + `providerModel` yazılır.
+Anahtarlar yalnızca tarayıcıda (localStorage) saklanır, sunucuda tutulmaz.
 
 ## Teknoloji
 

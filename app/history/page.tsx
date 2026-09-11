@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import MobileNav from "@/components/MobileNav";
 import { getHistory, clearHistory, BattleRecord } from "@/lib/store";
 import { getModel } from "@/lib/models";
+import { categoryLabel, detectCategory } from "@/lib/category";
 import { VoteResult } from "@/lib/elo";
 
 function resultBadge(r: VoteResult, aName: string, bName: string) {
@@ -20,7 +22,12 @@ function timeAgo(ts: number): string {
   if (m < 60) return `${m} dk önce`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h} sa önce`;
-  return new Date(ts).toLocaleDateString("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  return new Date(ts).toLocaleDateString("tr-TR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function History() {
@@ -45,16 +52,51 @@ export default function History() {
     });
   }, [hist, q]);
 
+  const dist = useMemo(() => {
+    const c = { a: 0, b: 0, tie: 0, bad: 0 };
+    for (const h of hist) {
+      if (h.result === "a") c.a++;
+      else if (h.result === "b") c.b++;
+      else if (h.result === "tie") c.tie++;
+      else c.bad++;
+    }
+    return c;
+  }, [hist]);
+
+  const total = hist.length || 1;
+
+  function exportJSON() {
+    const blob = new Blob([JSON.stringify(hist, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "arena-gecmis.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   return (
     <div>
-      <div className="mobile-nav">
-        <Link href="/">💬 Sohbet</Link>
-        <Link href="/leaderboard">🏆 Tablo</Link>
-        <Link href="/history" className="active">🕘 Geçmiş</Link>
-      </div>
-
+      <MobileNav />
       <h1 className="page-title">🕘 Battle Geçmişi</h1>
-      <p className="page-sub">Yaptığın tüm battle&apos;lar ve oyların. Ara, incele, takip et.</p>
+      <p className="page-sub">Yaptığın tüm battle&apos;lar ve oyların. Ara, incele, dışa aktar.</p>
+
+      {hist.length > 0 && (
+        <div className="settings-card">
+          <h3>📊 Oy dağılımı ({hist.length} battle)</h3>
+          <div className="dist-bar">
+            <div style={{ width: `${(dist.a / total) * 100}%`, background: "#51cf66" }} />
+            <div style={{ width: `${(dist.b / total) * 100}%`, background: "#339af0" }} />
+            <div style={{ width: `${(dist.tie / total) * 100}%`, background: "#ffd43b" }} />
+            <div style={{ width: `${(dist.bad / total) * 100}%`, background: "#ff6b6b" }} />
+          </div>
+          <div className="dist-legend">
+            <span>🟩 A kazandı: {dist.a}</span>
+            <span>🟦 B kazandı: {dist.b}</span>
+            <span>🟨 Berabere: {dist.tie}</span>
+            <span>🟥 İkisi de kötü: {dist.bad}</span>
+          </div>
+        </div>
+      )}
 
       <div className="search-row">
         <input
@@ -64,17 +106,22 @@ export default function History() {
           onChange={(e) => setQ(e.target.value)}
         />
         {hist.length > 0 && (
-          <button
-            className="btn btn-ghost"
-            onClick={() => {
-              if (confirm("Tüm geçmiş silinsin mi?")) {
-                clearHistory();
-                setHist([]);
-              }
-            }}
-          >
-            🗑️ Temizle
-          </button>
+          <>
+            <button className="btn btn-ghost" onClick={exportJSON}>
+              📥 Dışa aktar
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+                if (confirm("Tüm geçmiş silinsin mi?")) {
+                  clearHistory();
+                  setHist([]);
+                }
+              }}
+            >
+              🗑️ Temizle
+            </button>
+          </>
         )}
       </div>
 
@@ -97,6 +144,7 @@ export default function History() {
         filtered.map((h) => {
           const a = getModel(h.modelAId);
           const b = getModel(h.modelBId);
+          const cat = h.category ?? detectCategory(h.prompt);
           return (
             <div key={h.id} className="hist-item">
               <div className="hist-prompt">
@@ -107,6 +155,7 @@ export default function History() {
                 <span style={{ color: "var(--dim)" }}>vs</span>
                 <span className="chip">🅱️ {b.name}</span>
                 {resultBadge(h.result, a.name, b.name)}
+                <span className="cat-chip">{categoryLabel(cat)}</span>
                 <span style={{ marginLeft: "auto" }}>{timeAgo(h.ts)}</span>
               </div>
             </div>
