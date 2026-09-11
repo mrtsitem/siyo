@@ -5,6 +5,7 @@ import Link from "next/link";
 import Markdown from "@/components/Markdown";
 import CopyBtn from "@/components/CopyBtn";
 import MobileNav from "@/components/MobileNav";
+import SiteBuilder from "@/components/SiteBuilder";
 import { MODELS, getModel } from "@/lib/models";
 import { streamAgent } from "@/lib/client";
 import { parsePlan } from "@/lib/agent";
@@ -46,6 +47,7 @@ export default function AgentPage() {
   const [elapsed, setElapsed] = useState(0);
   const [recent, setRecent] = useState<string[]>([]);
   const [activeTask, setActiveTask] = useState("");
+  const [sub, setSub] = useState<"task" | "site">("site");
 
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -167,8 +169,19 @@ export default function AgentPage() {
       <MobileNav />
       <h1 className="page-title">🤖 Agent Modu</h1>
       <p className="page-sub">
-        Görevi yaz, agent planlasın ve adım adım uygulasın. Canlı ilerlemeyi izle, çıktıları kopyala.
+        Görev ver, agent planlasın ve uygulasın — veya sıfırdan web sitesi kurup canlı önizle.
       </p>
+
+      <div className="mode-tabs" style={{ maxWidth: 480 }}>
+        <button className={`mode-tab ${sub === "site" ? "active" : ""}`} onClick={() => setSub("site")}>
+          Site Kurucu
+        </button>
+        <button className={`mode-tab ${sub === "task" ? "active" : ""}`} onClick={() => setSub("task")}>
+          Görev Agent
+        </button>
+      </div>
+
+      {sub === "site" ? <SiteBuilder /> : (<>
 
       <div className="arena-bar">
         <Link href="/settings" className={`engine-chip ${engine !== "mock" ? "live" : ""}`}>
@@ -328,6 +341,7 @@ export default function AgentPage() {
           <span>Agent önce plan çıkarır, sonra adımları tek tek uygular • Gerçek AI için Ayarlar&apos;dan anahtar ekle</span>
         </div>
       </div>
+      </>)}
     </div>
   );
 }

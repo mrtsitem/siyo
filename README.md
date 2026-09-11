@@ -6,6 +6,7 @@ arena.ai mantığıyla çalışan yapay zekâ karşılaştırma platformu:
 ## Özellikler
 
 - 🤖 **Agent Modu:** Görev ver, AI planlasın ve adım adım uygulasın (canlı ilerleme, durdurma, kopyalama)
+- 🌐 **Site Kurucu:** "Restoran sitesi yap" de, agent gerçek HTML/CSS/JS yazsın — canlı önizleme, mobil/masaüstü, revizyon, sürümler, tek tıkla indirme
 
 - ⚔️ **Battle Mode:** 2 gizli model yarışır, oy verilir, kimlikler açılır (multi-turn)
 - 🆚 **Side-by-Side:** 2 modeli ismiyle seçip karşılaştırma

@@ -8,6 +8,12 @@ import {
   generateMockStep,
 } from "@/lib/agent";
 import {
+  buildWebsitePrompt,
+  refineWebsitePrompt,
+  formatMockBuild,
+  SiteFiles,
+} from "@/lib/builder";
+import {
   callOpenAICompatible,
   callGemini,
   HistoryTurn,
@@ -38,13 +44,15 @@ function splitChunks(text: string, size: number): string[] {
 type Provider = "mock" | "groq" | "openai" | "gemini";
 
 interface AgentBody {
-  kind: "plan" | "step";
+  kind: "plan" | "step" | "build" | "refine";
   task: string;
   plan?: string[];
   step?: string;
   index?: number;
   total?: number;
   context?: string[];
+  files?: SiteFiles;
+  request?: string;
 }
 
 /** Gerçek sağlayıcıya tek komut gönder */
@@ -93,12 +101,13 @@ async function generateFull(
 ): Promise<string> {
   const model = getModel(modelId);
 
-  // ── Agent istekleri ──
+  // ── Agent: plan ──
   if (agent?.kind === "plan") {
     const task = String(agent.task ?? prompt).slice(0, 2000);
     if (provider === "mock") return generateMockPlan(task, model);
     return callReal(provider, apiKey, modelId, buildPlanPrompt(task));
   }
+  // ── Agent: adım ──
   if (agent?.kind === "step") {
     const task = String(agent.task ?? "").slice(0, 2000);
     const step = String(agent.step ?? prompt).slice(0, 500);
@@ -115,6 +124,22 @@ async function generateFull(
       modelId,
       buildStepPrompt({ task, plan, step, index, total, context })
     );
+  }
+  // ── Site Kurucu: sıfırdan site ──
+  if (agent?.kind === "build") {
+    const task = String(agent.task ?? prompt).slice(0, 2000);
+    if (provider === "mock") return formatMockBuild(task, model);
+    return callReal(provider, apiKey, modelId, buildWebsitePrompt(task));
+  }
+  // ── Site Kurucu: revizyon ──
+  if (agent?.kind === "refine") {
+    const request = String(agent.request ?? prompt).slice(0, 2000);
+    const files = agent.files ?? { html: "", css: "", js: "" };
+    if (provider === "mock") {
+      const task = String(agent.task ?? "Site");
+      return formatMockBuild(task, model, request + Date.now());
+    }
+    return callReal(provider, apiKey, modelId, refineWebsitePrompt(files, request));
   }
 
   // ── Normal sohbet ──
@@ -175,13 +200,13 @@ export async function POST(req: NextRequest) {
     }
 
     const encoder = new TextEncoder();
-    const chunks = splitChunks(full, 28);
+    const chunks = splitChunks(full, 60);
 
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         for (const c of chunks) {
           controller.enqueue(encoder.encode(c));
-          await sleep(20 + Math.random() * 40);
+          await sleep(12 + Math.random() * 25);
         }
         controller.close();
       },

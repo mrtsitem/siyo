@@ -76,6 +76,13 @@ export type AgentRequest =
       index: number;
       total: number;
       context: string[];
+    }
+  | { kind: "build"; task: string }
+  | {
+      kind: "refine";
+      task: string;
+      files: { html: string; css: string; js: string };
+      request: string;
     };
 
 export async function streamAgent(
@@ -85,9 +92,17 @@ export async function streamAgent(
   signal?: AbortSignal
 ): Promise<string> {
   const s = getSettings();
+  const prompt =
+    req.kind === "plan"
+      ? req.task
+      : req.kind === "step"
+      ? req.step
+      : req.kind === "build"
+      ? req.task
+      : req.request;
   return postStream(
     {
-      prompt: req.kind === "plan" ? req.task : req.step,
+      prompt,
       modelId,
       history: [],
       provider: s.provider,
