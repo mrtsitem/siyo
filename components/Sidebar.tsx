@@ -7,6 +7,7 @@ import { getSettings, providerName, ProviderId } from "@/lib/settings";
 
 const NAV = [
   { href: "/", label: "Sohbet", icon: "💬", desc: "Battle & konuşma" },
+  { href: "/agent", label: "Agent", icon: "🤖", desc: "Görev planla & uygula" },
   { href: "/leaderboard", label: "Liderlik Tablosu", icon: "🏆", desc: "Model sıralaması" },
   { href: "/history", label: "Geçmiş", icon: "🕘", desc: "Ara & incele" },
   { href: "/models", label: "Modeller", icon: "🧠", desc: "8 model kataloğu" },

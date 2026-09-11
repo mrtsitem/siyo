@@ -1,0 +1,120 @@
+/* ── Arena Agent Modu stilleri ── */
+
+.agent-task-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.agent-task-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agent-task-title {
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.agent-progress {
+  height: 8px;
+  background: var(--card2);
+  border-radius: 999px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.agent-progress > div {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.4s ease;
+}
+
+.agent-plan-stream {
+  background: var(--card);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.agent-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.agent-step {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.agent-step.run {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(124, 108, 240, 0.4);
+}
+
+.agent-step.done {
+  border-color: rgba(81, 207, 102, 0.35);
+}
+
+.agent-step-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  padding: 12px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+}
+
+.agent-step-head:hover {
+  background: rgba(124, 108, 240, 0.06);
+}
+
+.agent-step-ico {
+  font-size: 16px;
+}
+
+.agent-step.run .agent-step-ico {
+  animation: spin 1.6s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.agent-step-title {
+  flex: 1;
+  font-weight: 700;
+}
+
+.agent-step-arrow {
+  color: var(--dim);
+}
+
+.agent-step-body {
+  padding: 4px 16px 16px 42px;
+  border-top: 1px solid rgba(38, 46, 74, 0.6);
+}
+
+@media (max-width: 860px) {
+  .mobile-nav a {
+    font-size: 10.5px;
+    padding: 9px 2px;
+  }
+}

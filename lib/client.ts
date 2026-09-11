@@ -11,23 +11,16 @@ export interface HistTurn {
   text: string;
 }
 
-export async function streamChat(
-  prompt: string,
-  modelId: string,
+async function postStream(
+  body: Record<string, unknown>,
   onChunk: (partial: string) => void,
-  history: HistTurn[] = []
+  signal?: AbortSignal
 ): Promise<string> {
-  const s = getSettings();
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      prompt,
-      modelId,
-      history: history.slice(-10),
-      provider: s.provider,
-      apiKey: activeKey(s),
-    }),
+    body: JSON.stringify(body),
+    signal,
   });
   if (!res.ok || !res.body) {
     let msg = "API hatası";
@@ -50,4 +43,58 @@ export async function streamChat(
   full += decoder.decode();
   onChunk(full);
   return full;
+}
+
+export async function streamChat(
+  prompt: string,
+  modelId: string,
+  onChunk: (partial: string) => void,
+  history: HistTurn[] = []
+): Promise<string> {
+  const s = getSettings();
+  return postStream(
+    {
+      prompt,
+      modelId,
+      history: history.slice(-10),
+      provider: s.provider,
+      apiKey: activeKey(s),
+    },
+    onChunk
+  );
+}
+
+// ── Agent istekleri ──
+
+export type AgentRequest =
+  | { kind: "plan"; task: string }
+  | {
+      kind: "step";
+      task: string;
+      plan: string[];
+      step: string;
+      index: number;
+      total: number;
+      context: string[];
+    };
+
+export async function streamAgent(
+  modelId: string,
+  req: AgentRequest,
+  onChunk: (partial: string) => void,
+  signal?: AbortSignal
+): Promise<string> {
+  const s = getSettings();
+  return postStream(
+    {
+      prompt: req.kind === "plan" ? req.task : req.step,
+      modelId,
+      history: [],
+      provider: s.provider,
+      apiKey: activeKey(s),
+      agent: req,
+    },
+    onChunk,
+    signal
+  );
 }

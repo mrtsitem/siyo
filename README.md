@@ -1,9 +1,11 @@
-# ⚔️ Arena — AI Battle & Leaderboard (v2)
+# ⚔️ Arena — AI Battle & Leaderboard (v2.1)
 
 arena.ai mantığıyla çalışan yapay zekâ karşılaştırma platformu:
-**Battle + Side-by-Side + Direkt Sohbet + Kategorili Elo Tablosu + Geçmiş + Gerçek AI Motorları.**
+**Battle + Side-by-Side + Direkt Sohbet + Agent + Kategorili Elo Tablosu + Geçmiş + Gerçek AI Motorları.**
 
 ## Özellikler
+
+- 🤖 **Agent Modu:** Görev ver, AI planlasın ve adım adım uygulasın (canlı ilerleme, durdurma, kopyalama)
 
 - ⚔️ **Battle Mode:** 2 gizli model yarışır, oy verilir, kimlikler açılır (multi-turn)
 - 🆚 **Side-by-Side:** 2 modeli ismiyle seçip karşılaştırma

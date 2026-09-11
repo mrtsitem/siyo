@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import "./v2.css";
+import "./agent.css";
 import Sidebar from "@/components/Sidebar";
 
 export const metadata: Metadata = {
